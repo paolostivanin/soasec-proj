@@ -1,3 +1,6 @@
 mkdir /tmp/mongodb && mongod --dbpath /tmp/mongodb/
 
 db.createUser({user: 'user', pwd: 'pass', roles: [{role: "readWrite", db: "apitest"}]})
+
+curl -d '{"name": "myvmPOL", "os": "gentoo"}' -H 'Content-Type: application/json'  http://127.0.0.1:5000/vms
+
