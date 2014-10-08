@@ -5,56 +5,46 @@ MONGO_USERNAME = 'user'
 MONGO_PASSWORD = 'pass'
 MONGO_DBNAME = 'apitest'
 
-# /vms
+#DEBUG = True
+
+#/...
 RESOURCE_METHODS = ['GET', 'POST', 'DELETE']
 
-# /vms/<id>
+#/.../<id>
 ITEM_METHODS = ['GET', 'PATCH', 'PUT', 'DELETE']
 
 schema = {
-    # Schema definition, based on Cerberus grammar. Check the Cerberus project
-    # (https://github.com/nicolaiarocci/cerberus) for details.
-    'name': {
-        'type': 'string',
-        'minlength': 1,
-        'maxlength': 20,
-        'required': True,
-    },
-    'os': {
-        'type': 'string',
-        'minlength': 1,
-        'maxlength': 15,
-        'required': True,
-    },
-    'deployed': {
-        'type': 'datetime',
-    },
+	'username': {
+		'type': 'string',
+		'required': True,
+	},
+	'password': {
+		'type': 'string',
+		'required': True,
+	},
+	'roles': {
+		'type': 'list',
+		'allowed': ['user', 'superuser', 'admin'],
+		'required': True,
+	},
+	'token': {
+		'type': 'string',
+		'required': True,
+	}
 }
 
-vms = {
-    # 'title' tag used in item links. Defaults to the resource title minus
-    # the final, plural 's' (works fine in most cases but not for 'vms')
-    'item_title': 'vm',
-
-    # by default the standard item entry point is defined as
-    # '/vms/<ObjectId>'. We leave it untouched, and we also enable an
-    # additional read-only entry point. This way consumers can also perform
-    # GET requests at '/vms/<os>'.
+accounts = {
     'additional_lookup': {
         'url': 'regex("[\w]+")',
-        'field': 'os'
+        'field': 'username'
     },
-
-    # We choose to override global cache-control directives for this resource.
-    'cache_control': 'max-age=10,must-revalidate',
-    'cache_expires': 10,
-
-    # most global settings can be overridden at resource level
-    'resource_methods': ['GET', 'POST'],
-
+    'cache_control': '',
+    'cache_expires': 0,
+    'allowed_roles': ['admin', 'superuser', 'user'],
+    'extra_response_fields': ['token'],
     'schema': schema
 }
 
 DOMAIN = {
-    'vms': vms,
+    'accounts': accounts,
 }

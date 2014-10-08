@@ -1,6 +1,13 @@
 mkdir /tmp/mongodb && mongod --dbpath /tmp/mongodb/
 
 db.createUser({user: 'user', pwd: 'pass', roles: [{role: "readWrite", db: "apitest"}]})
+db.createCollection("accounts")
 
-curl -d '{"name": "myvmPOL", "os": "gentoo"}' -H 'Content-Type: application/json'  http://127.0.0.1:5000/vms
+//se uso auth base con user,pwd (la pwd è paolo):
+db.accounts.insert({username: "pol", password: "$2a$10$kiYIJnKZsCG5GKyxgaZEdeVgPW2J/n1sWWJx.iI9uzcJd0u.NPeEa"})
 
+//se uso token based auth:
+db.accounts.insert({username: "paolo", password: "pol", roles: ["user","superuser","admin"], token: "ciao"})
+
+con la token-based auth bisogna inviare encodato il token come se fosse lo username senza password. Dato il token è "ciao", la stringa da inviare è:
+Authorization: Basic base64("ciao:")
