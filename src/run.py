@@ -6,7 +6,6 @@ import string
 
 class RolesAuth(TokenAuth):
      def check_auth(self, token, allowed_roles, resource, method):
-         # use Eve's own db driver; no additional connections/resources are used
          accounts = app.data.driver.db['accounts']
          lookup = {'token': token}
          if allowed_roles:

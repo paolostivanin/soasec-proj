@@ -7,11 +7,12 @@ MONGO_DBNAME = 'apitest'
 
 #DEBUG = True
 
-#/...
+#/accounts
 RESOURCE_METHODS = ['GET', 'POST', 'DELETE']
 
-#/.../<id>
+#/accounts/<id>
 ITEM_METHODS = ['GET', 'PATCH', 'PUT', 'DELETE']
+
 
 schema = {
 	'username': {
@@ -33,6 +34,13 @@ schema = {
 	}
 }
 
+schemavm = {
+	'name': {
+		'type': 'string',
+		'required': True,
+	},
+}
+
 accounts = {
     'additional_lookup': {
         'url': 'regex("[\w]+")',
@@ -40,11 +48,25 @@ accounts = {
     },
     'cache_control': '',
     'cache_expires': 0,
-    'allowed_roles': ['admin', 'superuser', 'user'],
+    'allowed_roles': ['admin', 'superuser'],
     'extra_response_fields': ['token'],
+    'public_methods': [],
     'schema': schema
+}
+
+vms = {
+    'additional_lookup': {
+        'url': 'regex("[\w]+")',
+        'field': 'name'
+    },
+    'cache_control': '',
+    'cache_expires': 0,
+    'allowed_roles': ['user', 'superuser', 'admin'],
+    'public_methods': ['GET'],
+    'schema': schemavm
 }
 
 DOMAIN = {
     'accounts': accounts,
+    'vms': vms,
 }
