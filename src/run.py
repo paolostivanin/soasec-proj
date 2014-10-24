@@ -6,7 +6,7 @@ import string
 
 class RolesAuth(TokenAuth):
 	def check_auth(self, token, allowed_roles, resource, method):
-		accounts = app.data.driver.db['accounts']
+		accounts = app.data.driver.db['registration']
 		account = accounts.find_one({'token': token})
 		if account and '_id' in account:
 			self.set_request_auth_value(account['_id'])
@@ -22,10 +22,10 @@ def add_token(documents):
      # Don't use this in production:
      # You should at least make sure that the token is unique.
      for document in documents:
-         document["token"] = (''.join(random.choice(string.ascii_uppercase)
-                                      for x in range(10)))
+         document["token"] = (''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10)))
+
 
 if __name__ == '__main__':
      app = Eve(auth=RolesAuth)
-     app.on_insert_accounts += add_token
+     app.on_insert_registration += add_token
      app.run()

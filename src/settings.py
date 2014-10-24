@@ -39,32 +39,6 @@ reg_schema = {
 		'type': 'list',
 		'allowed': ['user'],
 		'required': True,
-	},
-}
-
-user_schema = {
-	'username': {
-		'type': 'string',
-		'minlength': 3,
-		'maxlength': 50,
-		'required': True,
-		'unique': True,
-	},
-	'password': {
-		'type': 'string',
-		'minlength': 10,
-		'maxlength': 256,
-		'required': True,
-	},
-	'roles': {
-		'type': 'list',
-		'allowed': ['user', 'admin'],
-		'required': True,
-	},
-	'token': {
-		'type': 'string',
-		'required': True,
-		'unique': True,
 	}
 }
 
@@ -78,47 +52,80 @@ vm_schema = {
 		'type': 'string',
 		'required': True,
 	},
-	'vCPU': {
-		'type': 'string',
-		'required': True,
+	'resources': {
+		'type': 'dict',
+		'schema': {
+			'vCPU': { 'type': 'integer', 'required': True },
+			'RAM': { 'type': 'integer', 'required': True },
+			'Disk': { 'type': 'integer', 'required': True }
+		},
 	},
-	'RAM': {
-		'type': 'string',
-		'required': True,
-	},
-	'Disk': {
-		'type': 'string',
-		'required': True,
+ 	'actions': {
+		'type': 'list',
+		'allowed': [ "deploy", "halt", "reboot" ],
+		'required': True
+		
 	}
 }
 
-accounts = {
-    'additional_lookup': {
-        'url': 'regex("[\w]+")',
-        'field': 'username',
-    },
-    'cache_control': '',
-    'cache_expires': 0,
-    'auth_field': 'user_id',
-    'public_methods': ['POST'],
-    'public_item_methods': [],
-    'schema': reg_schema,
+user_management_schema = {
+	'username': {
+		'type': 'string',
+		'minlength': 3,
+		'maxlength': 50,
+		'required': True,
+	},
+	'password': {
+		'type': 'string',
+		'minlength': 10,
+		'maxlength': 256,
+		'required': True,
+	},
+}
+
+registration = {
+	'additional_lookup': {
+		'url': 'regex("[\w]+")',
+		'field': 'username',
+	},
+	'cache_control': '',
+	'cache_expires': 0,
+	'auth_field': 'user_id',
+	'public_methods': ['POST'],
+	'public_item_methods': [],
+	'extra_response_fields': ['token'],
+	'schema': reg_schema,
 }
 
 vms = {
-    'additional_lookup': {
-        'url': 'regex("[\w]+")',
-        'field': 'name',
-    },
-    'cache_control': '',
-    'cache_expires': 0,
-    'public_methods': [],
-    'public_item_methods': [],
-    'auth_field': 'user_id',
-    'schema': vm_schema,
+	'additional_lookup': {
+		'url': 'regex("[\w]+")',
+		'field': 'name',
+	},
+	'cache_control': '',
+	'cache_expires': 0,
+	'public_methods': [],
+	'public_item_methods': [],
+	'auth_field': 'user_id',
+	'schema': vm_schema,
+}
+
+account_management = {
+	'additional_lookup': {
+		'url': 'regex("[\w]+")',
+		'field': 'username',
+	},
+	'cache_control': '',
+	'cache_expires': 0,
+	'auth_field': 'user_id',
+	'public_methods': [],
+	'public_item_methods': [],
+	'resource_methods': [],
+	'item_methods': ['PATCH','DELETE'],
+	'schema': user_management_schema,
 }
 
 DOMAIN = {
-    'accounts': accounts,
+    'registration': registration,
     'vms': vms,
 }
