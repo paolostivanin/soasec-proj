@@ -1,5 +1,6 @@
 mkdir /tmp/mongodb && mongod --dbpath /tmp/mongodb/
 
+use apitest
 db.createUser({user: 'user', pwd: 'pass', roles: [{role: "readWrite", db: "apitest"}]})
 db.createCollection("accounts")
 
@@ -11,3 +12,9 @@ db.accounts.insert({username: "paolo", password: "pol", roles: ["user","superuse
 
 con la token-based auth bisogna inviare encodato il token come se fosse lo username senza password. Dato il token è "ciao", la stringa da inviare è:
 Authorization: Basic base64("ciao:")
+
+per inserire un account con post:
+curl -X POST -H "Authorization: Basic XX" -H "Content-Type: application/json" -d '{"username":"asdasd", "password":"gronf", "roles":["user"], "token":""}' -i http://localhost:5000/accounts
+
+per inserire vms:
+curl -X POST -H "Authorization: Basic XX" -H "Content-Type: application/json" -d '{"name":"bubu3","os":"gen2too","vCPU":"4","RAM":"500","Disk":"1000"}' -i http://localhost:5000/vms

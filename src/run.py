@@ -5,14 +5,17 @@ import string
 
 
 class RolesAuth(TokenAuth):
-     def check_auth(self, token, allowed_roles, resource, method):
-         accounts = app.data.driver.db['accounts']
-         lookup = {'token': token}
-         if allowed_roles:
-             #only retrieve a user if his roles match ``allowed_roles``
-             lookup['roles'] = {'$in': allowed_roles}
-         account = accounts.find_one(lookup)
-         return account
+	def check_auth(self, token, allowed_roles, resource, method):
+		accounts = app.data.driver.db['accounts']
+		account = accounts.find_one({'token': token})
+		if account and '_id' in account:
+			self.set_request_auth_value(account['_id'])
+		#if allowed_roles:
+			#only retrieve a user if his roles match ``allowed_roles``
+		#	lookup['roles'] = {'$in': allowed_roles}
+		#	account = accounts.find_one(lookup)
+		
+		return account
 
 
 def add_token(documents):
@@ -21,7 +24,6 @@ def add_token(documents):
      for document in documents:
          document["token"] = (''.join(random.choice(string.ascii_uppercase)
                                       for x in range(10)))
-
 
 if __name__ == '__main__':
      app = Eve(auth=RolesAuth)
