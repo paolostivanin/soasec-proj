@@ -21,7 +21,7 @@ ITEM_METHODS = ['GET', 'PATCH', 'PUT', 'DELETE']
 #delete: delete a specified <item>
 
 
-reg_schema = {
+accounts_schema = {
 	'username': {
 		'type': 'string',
 		'minlength': 3,
@@ -38,7 +38,8 @@ reg_schema = {
 	'roles': {
 		'type': 'list',
 		'allowed': ['user'],
-		'required': True,
+		'default': ['user'],
+		'required': False,
 	}
 }
 
@@ -68,22 +69,7 @@ vm_schema = {
 	}
 }
 
-user_management_schema = {
-	'username': {
-		'type': 'string',
-		'minlength': 3,
-		'maxlength': 50,
-		'required': True,
-	},
-	'password': {
-		'type': 'string',
-		'minlength': 10,
-		'maxlength': 256,
-		'required': True,
-	},
-}
-
-registration = {
+accounts = {
 	'additional_lookup': {
 		'url': 'regex("[\w]+")',
 		'field': 'username',
@@ -93,8 +79,10 @@ registration = {
 	'auth_field': 'user_id',
 	'public_methods': ['POST'],
 	'public_item_methods': [],
+	'resource_methods': ['GET'],
+	'item_methods': ['PATCH','DELETE'],
 	'extra_response_fields': ['token'],
-	'schema': reg_schema,
+	'schema': accounts_schema,
 }
 
 vms = {
@@ -110,22 +98,7 @@ vms = {
 	'schema': vm_schema,
 }
 
-account_management = {
-	'additional_lookup': {
-		'url': 'regex("[\w]+")',
-		'field': 'username',
-	},
-	'cache_control': '',
-	'cache_expires': 0,
-	'auth_field': 'user_id',
-	'public_methods': [],
-	'public_item_methods': [],
-	'resource_methods': [],
-	'item_methods': ['PATCH','DELETE'],
-	'schema': user_management_schema,
-}
-
 DOMAIN = {
-    'registration': registration,
+    'accounts': accounts,
     'vms': vms,
 }
