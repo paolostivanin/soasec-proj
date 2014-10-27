@@ -8,13 +8,13 @@ MONGO_DBNAME = 'apitest'
 #DEBUG = True
 
 #/<domain>
-RESOURCE_METHODS = ['GET', 'POST', 'DELETE']
+#RESOURCE_METHODS = ['GET', 'POST', 'DELETE']
 #get: retrive all items from the specified <domain>
 #post: create a new item in the specified <domain>
 #delete: delete a specified <domain>
 
 #/<domain>/<item>
-ITEM_METHODS = ['GET', 'PATCH', 'PUT', 'DELETE']
+#ITEM_METHODS = ['GET', 'PATCH', 'PUT', 'DELETE']
 #get: retrive a single <item>
 #patch: partially update a specified <item>
 #put: totally update a specified <item>
@@ -63,7 +63,7 @@ vm_schema = {
 	},
  	'actions': {
 		'type': 'list',
-		'allowed': [ "deploy", "halt", "reboot" ],
+		'allowed': [ "start", "stop", "reboot" ],
 		'required': True
 		
 	}
@@ -76,12 +76,12 @@ accounts = {
 	},
 	'cache_control': '',
 	'cache_expires': 0,
-	'auth_field': 'user_id',
 	'public_methods': ['POST'],
 	'public_item_methods': [],
-	'resource_methods': ['GET'],
-	'item_methods': ['PATCH','DELETE'],
-	'extra_response_fields': ['token'],
+	'resource_methods': ['GET', 'POST'],
+	'item_methods': ['GET','PATCH','DELETE'],
+	'extra_response_fields': ['secret_key'],
+	'auth_field': 'user_id',
 	'schema': accounts_schema,
 }
 
@@ -94,6 +94,8 @@ vms = {
 	'cache_expires': 0,
 	'public_methods': [],
 	'public_item_methods': [],
+	'resource_methods': ['GET', 'POST'],
+	'item_methods': ['GET','PATCH','DELETE'],
 	'auth_field': 'user_id',
 	'schema': vm_schema,
 }

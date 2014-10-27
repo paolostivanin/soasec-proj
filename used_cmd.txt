@@ -7,14 +7,13 @@ db.createCollection("accounts")
 //se uso auth base con user,pwd (la pwd è paolo):
 db.accounts.insert({username: "pol", password: "$2a$10$kiYIJnKZsCG5GKyxgaZEdeVgPW2J/n1sWWJx.iI9uzcJd0u.NPeEa"})
 
-//se uso token based auth:
-db.accounts.insert({username: "paolo", password: "pol", roles: ["user","superuser","admin"], token: "ciao"})
-
 con la token-based auth bisogna inviare encodato il token come se fosse lo username senza password. Dato il token è "ciao", la stringa da inviare è:
 Authorization: Basic base64("ciao:")
 
 per inserire un account con post:
-curl -X POST -H "Authorization: Basic XX" -H "Content-Type: application/json" -d '{"username":"asdasd", "password":"gronf", "roles":["user"], "token":""}' -i http://localhost:5000/accounts
+curl -X POST -H "Content-Type: application/json" -d '{"username":"asdasd", "password":"gronf"}' -i http://localhost:5000/accounts
 
 per inserire vms:
-curl -X POST -H "Authorization: Basic XX" -H "Content-Type: application/json" -d '{"name":"bubu3","os":"gen2too","vCPU":"4","RAM":"500","Disk":"1000"}' -i http://localhost:5000/vms
+curl -X POST -H "Authorization: Basic XX" -H "Content-Type: application/json" -d '{"name":"myvm","os":"ubuntu","resources":{"vCPU":"4","RAM":"512","Disk":"1000"},"actions":["start"]}' -i http://localhost:5000/vms
+
+U.R.R.A.: ogni utente può gestire solo e soltanto le sue vms
