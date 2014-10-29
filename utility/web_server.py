@@ -2,33 +2,58 @@
 
 import requests
 import json
+import string
+import random
 from http.server import BaseHTTPRequestHandler,HTTPServer
+from datetime import datetime
+from pymongo import MongoClient
 
 requests.packages.urllib3.disable_warnings()
 PORT_NUMBER = 8080
 
+SEC_PER_DAY = 86400
+MIN_PER_DAY = 1440
+
 '''
 ToDo:
 	- controllo che json sia nella forma username, password
-	- head, put, delete, ecc negate (tipo GET)
 	- gestione errori (tipo ValueError se dimentico virgolette)
 	- generare token se auth ok e restituirlo
-	- risposta in formato JSON
 	- inserire token nel DB mongo
 '''
 
 class myHandler(BaseHTTPRequestHandler):	
-	#Handler for the GET requests
 	def do_GET(self):
-		self.send_response(200)
+		self.send_response(501)
 		self.send_header('Content-type','text/html')
 		self.end_headers()
-		self.wfile.write(bytes("Only POST request is supported\n", encoding='utf-8'))
+		self.wfile.write(bytes("Only POST is supported\n", encoding='utf-8'))
+		return
+		
+	def do_HEAD(self):
+		self.send_response(501)
+		self.send_header('Content-type','text/html')
+		self.end_headers()
+		self.wfile.write(bytes("Only POST is supported\n", encoding='utf-8'))
+		return
+		
+	def do_PUT(self):
+		self.send_response(501)
+		self.send_header('Content-type','text/html')
+		self.end_headers()
+		self.wfile.write(bytes("Only POST is supported\n", encoding='utf-8'))
+		return
+		
+	def do_DELETE(self):
+		self.send_response(501)
+		self.send_header('Content-type','text/html')
+		self.end_headers()
+		self.wfile.write(bytes("Only POST is supported\n", encoding='utf-8'))
 		return
 		
 	def do_POST(self):
 		self.send_response(200)
-		self.send_header('Content-type','text/html')
+		self.send_header('Content-type','application/json')
 		self.end_headers()
 		content_len = int(self.headers.get('content-length', 0))
 		post_body = self.rfile.read(content_len)
@@ -37,9 +62,14 @@ class myHandler(BaseHTTPRequestHandler):
 		p = loaded['password']
 		ret = self.check_auth(u, p)
 		if ret == False:
-			self.wfile.write(bytes("Not Auth\n", encoding='utf-8'))
+			resp = {'auth':'no'}
+			json_resp = json.dumps(resp)
+			self.wfile.write(bytes(json_resp, encoding='utf-8'))
 		else:
-			self.wfile.write(bytes("Auth\n", encoding='utf-8'))
+			token = (''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(16)))
+			resp = {'auth':'yes','token': token,'valid_until': token_validity}
+			json_resp = json.dumps(resp)
+			self.wfile.write(bytes(json_resp, encoding='utf-8'))
 				
 		return
 				
@@ -58,7 +88,7 @@ class myHandler(BaseHTTPRequestHandler):
 
 try:
 	server = HTTPServer(('', PORT_NUMBER), myHandler)
-	print("Started httpserver on port 8080")
+	print("HTTP Server started on port", PORT_NUMBER)
 	server.serve_forever()
 
 except KeyboardInterrupt:

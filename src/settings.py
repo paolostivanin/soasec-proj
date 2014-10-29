@@ -5,7 +5,7 @@ MONGO_USERNAME = 'user'
 MONGO_PASSWORD = 'pass'
 MONGO_DBNAME = 'apitest'
 
-#DEBUG = True
+DEBUG = True
 
 #/<domain>
 #get: retrive all items from the specified <domain>
@@ -79,7 +79,7 @@ accounts = {
 	'public_item_methods': [],
 	'resource_methods': ['GET', 'POST'],
 	'item_methods': ['GET','PATCH','DELETE'],
-	'extra_response_fields': ['secret_key'],
+	'extra_response_fields': ['token'],
 	'schema': accounts_schema,
 }
 
