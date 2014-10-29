@@ -1,6 +1,8 @@
 from eve import Eve
 from eve.auth import TokenAuth
 import bcrypt
+import random
+import string
 
 class RolesAuth(TokenAuth):
 	def check_auth(self, token, allowed_roles, resource, method):
@@ -16,8 +18,8 @@ def add_token(documents):
      # Don't use this in production:
      # You should at least make sure that the token is unique.
      for document in documents:
-	     document["token"] = None
-	     document["password"] = bcrypt.hashpw(document["password"], bcrypt.gensalt(16))
+	     document["token"] = (''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(16)))
+	     document["password"] = bcrypt.hashpw(document["password"], bcrypt.gensalt(10))
 
 
 if __name__ == '__main__':
