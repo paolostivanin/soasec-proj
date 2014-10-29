@@ -5,21 +5,17 @@ import json
 import string
 import random
 from http.server import BaseHTTPRequestHandler,HTTPServer
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from pymongo import MongoClient
 
 requests.packages.urllib3.disable_warnings()
-PORT_NUMBER = 8080
 
-SEC_PER_DAY = 86400
-MIN_PER_DAY = 1440
+PORT_NUMBER = 8080
 
 '''
 ToDo:
 	- controllo che json sia nella forma username, password
 	- gestione errori (tipo ValueError se dimentico virgolette)
-	- generare token se auth ok e restituirlo
-	- inserire token nel DB mongo
 '''
 
 class myHandler(BaseHTTPRequestHandler):	
@@ -62,18 +58,24 @@ class myHandler(BaseHTTPRequestHandler):
 		p = loaded['password']
 		ret = self.check_auth(u, p)
 		if ret == False:
-			resp = {'auth':'no'}
+			resp = {'auth':'failed'}
 			json_resp = json.dumps(resp)
 			self.wfile.write(bytes(json_resp, encoding='utf-8'))
 		else:
 			token = (''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(16)))
-			resp = {'auth':'yes','token': token,'valid_until': token_validity}
+			token_validity = datetime.now(timezone.utc) + timedelta(days=1)
+			r = self.add_token_to_db(u, token, token_validity)
+			if not r:
+				is_stored = "no"
+			else:
+				is_stored = "yes"
+			resp = {'auth':'yes','token': token,'valid_until': token_validity,'stored': is_stored}
 			json_resp = json.dumps(resp)
 			self.wfile.write(bytes(json_resp, encoding='utf-8'))
-				
+			
 		return
-				
-				
+			
+					
 	def check_auth(self, user, passwd):
 		#passwd nella forma $password$otp, esempio: passw063421
 		r = requests.get("https://localhost:5001/validate/check?user=" + user + "&" + "pass=" + passwd, verify=False)
@@ -84,6 +86,19 @@ class myHandler(BaseHTTPRequestHandler):
 		else:
 			return True
 
+
+	def add_token_to_db(self, username, tk, tk_val):
+		c = MongoClient()
+		db = c.apitest
+		myco = db["accounts"]
+		r = myco.update({'username': username},{'$set': {'token': tk, 'tokendate': tk_val}})
+		ret = r['updatedExisting']
+		if not ret:
+			c.close()
+			return False
+		else:
+			c.close()
+			return True
 
 
 try:
