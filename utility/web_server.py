@@ -2,11 +2,12 @@
 
 import requests
 import json
-import string
-import random
+import string, random
+import base64, hashlib, os
 from http.server import BaseHTTPRequestHandler,HTTPServer
 from datetime import datetime, timezone, timedelta
 from pymongo import MongoClient
+import pymysql
 
 requests.packages.urllib3.disable_warnings()
 
@@ -14,7 +15,6 @@ PORT_NUMBER = 8080
 
 '''
 ToDo:
-	- controllo che json sia nella forma username, password
 	- gestione errori (tipo ValueError se dimentico virgolette)
 '''
 
@@ -54,17 +54,30 @@ class myHandler(BaseHTTPRequestHandler):
 		content_len = int(self.headers.get('content-length', 0))
 		post_body = self.rfile.read(content_len)
 		loaded = json.loads(post_body.decode())
-		u = loaded['username']
-		p = loaded['password']
-		ret = self.check_auth(u, p)
+		if 'option' in loaded:
+			if 'username' and 'password' in loaded:
+				add_user_to_privacyidea_db(loaded['username'], loaded['password'])
+				return
+			else:
+				self.send_fail()
+				return
+		else:
+			if 'username' and 'password' and 'otp' in loaded:
+				u = loaded['username']
+				p = loaded['password']
+				o = loaded['otp']
+			else:
+				self.send_fail()
+				return
+
+		ret = check_otp_auth(u, p, o)
 		if ret == False:
-			resp = {'auth':'failed'}
-			json_resp = json.dumps(resp)
-			self.wfile.write(bytes(json_resp, encoding='utf-8'))
+			send_fail()
+			return
 		else:
 			token = (''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(16)))
 			token_validity = datetime.now(timezone.utc) + timedelta(days=1)
-			r = self.add_token_to_db(u, token, token_validity)
+			r = add_token_to_db(u, token, token_validity)
 			if not r:
 				is_stored = "no"
 			else:
@@ -76,36 +89,52 @@ class myHandler(BaseHTTPRequestHandler):
 		return
 			
 					
-	def check_auth(self, user, passwd):
-		#passwd nella forma $password$otp, esempio: passw063421
-		r = requests.get("https://localhost:5001/validate/check?user=" + user + "&" + "pass=" + passwd, verify=False)
-		parse = r.json()
-		res = parse['result']['value']
-		if res == False:
-			return False
-		else:
-			return True
+	def send_fail(self):
+		resp = {'auth':'failed'}
+		json_resp = json.dumps(resp)
+		self.wfile.write(bytes(json_resp, encoding='utf-8'))
+	
+	
+def check_otp_auth(self, user, passwd, otp):
+	r = requests.get("https://localhost:5001/validate/check?user=" + user + "&pass=" + passwd + otp, verify=False)
+	parse = r.json()
+	res = parse['result']['value']
+	if res == False:
+		return False
+	else:
+		return True
 
 
-	def add_token_to_db(self, username, tk, tk_val):
-		c = MongoClient()
-		db = c.apitest
-		myco = db["accounts"]
-		r = myco.update({'username': username},{'$set': {'token': tk, 'tokendate': tk_val}})
-		ret = r['updatedExisting']
-		if not ret:
-			c.close()
-			return False
-		else:
-			c.close()
-			return True
+def add_token_to_db(username, tk, tk_val):
+	c = MongoClient()
+	db = c.apitest
+	myco = db["accounts"]
+	r = myco.update({'username': username},{'$set': {'token': tk, 'tokendate': tk_val}})
+	ret = r['updatedExisting']
+	if not ret:
+		c.close()
+		return False
+	else:
+		c.close()
+		return True
+
+
+def add_user_to_privacyidea_db(u, p):
+	pb = p.encode('utf-8')
+	salt = os.urandom(8)
+	enc=  base64.b64encode(hashlib.sha1(pb + salt).digest() + salt)
+	hashed_pwd = '{SSHA}' + enc.decode()
+	c = pymysql.connect(host='127.0.0.1', port=3306, user='root', passwd='paolo', db='wpdb')
+	cur = c.cursor()
+	cur.execute("INSERT INTO newtable(username, password) VALUES(%s, %s)", (u, hashed_pwd))
+	c.commit()
+	c.close()
 
 
 try:
 	server = HTTPServer(('', PORT_NUMBER), myHandler)
 	print("HTTP Server started on port", PORT_NUMBER)
 	server.serve_forever()
-
 except KeyboardInterrupt:
 	print("^C received, shutting down the web server")
 	server.socket.close()

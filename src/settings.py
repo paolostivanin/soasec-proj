@@ -5,7 +5,7 @@ MONGO_USERNAME = 'user'
 MONGO_PASSWORD = 'pass'
 MONGO_DBNAME = 'apitest'
 
-DEBUG = True
+#DEBUG = True
 
 #/<domain>
 #get: retrive all items from the specified <domain>
@@ -21,80 +21,80 @@ DEBUG = True
 AUTH_FIELD = 'user_id'
 
 accounts_schema = {
-	'username': {
-		'type': 'string',
-		'minlength': 3,
-		'maxlength': 50,
-		'required': True,
-		'unique': True,
-	},
-	'password': {
-		'type': 'string',
-		'minlength': 10,
-		'maxlength': 256,
-		'required': True,
-	},
-	'roles': {
-		'type': 'list',
-		'allowed': ['user','admin'],
-		'default': ['user'],
-		'required': False,
-	}
+    'username': {
+        'type': 'string',
+        'minlength': 3,
+        'maxlength': 50,
+        'required': True,
+        'unique': True,
+    },
+    'password': {
+        'type': 'string',
+        'minlength': 10,
+        'maxlength': 256,
+        'required': True,
+    },
+    'roles': {
+        'type': 'list',
+        'allowed': ['user','admin'],
+        'default': ['user'],
+        'required': False,
+    }
 }
 
 vm_schema = {
-	'name': {
-		'type': 'string',
-		'required': True,
-		'unique': True,
-	},
-	'os': {
-		'type': 'string',
-		'required': True,
-	},
-	'resources': {
-		'type': 'dict',
-		'schema': {
-			'vCPU': { 'type': 'integer', 'required': True },
-			'RAM': { 'type': 'integer', 'required': True },
-			'Disk': { 'type': 'integer', 'required': True }
-		},
-	},
- 	'actions': {
-		'type': 'list',
-		'allowed': [ "start", "stop", "reboot" ],
-		'required': True,
-		
-	}
+    'name': {
+        'type': 'string',
+        'required': True,
+        'unique': True,
+    },
+    'os': {
+        'type': 'string',
+        'required': True,
+    },
+    'resources': {
+        'type': 'dict',
+        'schema': {
+            'vCPU': { 'type': 'integer', 'required': True },
+            'RAM': { 'type': 'integer', 'required': True },
+            'Disk': { 'type': 'integer', 'required': True }
+        },
+    },
+    'actions': {
+        'type': 'list',
+        'allowed': [ "start", "stop", "reboot" ],
+        'required': True,
+        
+    }
 }
 
 accounts = {
-	'additional_lookup': {
-		'url': 'regex("[\w]+")',
-		'field': 'username',
-	},
-	'cache_control': '',
-	'cache_expires': 0,
-	'public_methods': ['POST'],
-	'public_item_methods': [],
-	'resource_methods': ['GET', 'POST'],
-	'item_methods': ['GET','PATCH','DELETE'],
-	'extra_response_fields': ['token'],
-	'schema': accounts_schema,
+    'additional_lookup': {
+        'url': 'regex("[\w]+")',
+        'field': 'username',
+    },
+    'cache_control': '',
+    'cache_expires': 0,
+    'public_methods': ['POST'],
+    'public_item_methods': [],
+    'resource_methods': ['GET', 'POST'],
+    'item_methods': ['GET','PATCH','DELETE'],
+    'extra_response_fields': ['token'],
+    'schema': accounts_schema,
 }
 
 vms = {
-	'additional_lookup': {
-		'url': 'regex("[\w]+")',
-		'field': 'name',
-	},
-	'cache_control': '',
-	'cache_expires': 0,
-	'public_methods': [],
-	'public_item_methods': [],
-	'resource_methods': ['GET', 'POST'],
-	'item_methods': ['GET','PATCH','DELETE'],
-	'schema': vm_schema,
+    'additional_lookup': {
+        'url': 'regex("[\w]+")',
+        'field': 'name',
+    },
+    'cache_control': '',
+    'cache_expires': 0,
+    'public_methods': [],
+    'public_item_methods': [],
+    'resource_methods': ['GET', 'POST'],
+    'item_methods': ['GET','PATCH','DELETE'],
+    'schema': vm_schema,
 }
 
 DOMAIN = {
