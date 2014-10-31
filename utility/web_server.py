@@ -26,12 +26,14 @@ class myHandler(BaseHTTPRequestHandler):
 		self.wfile.write(bytes("Only POST is supported\n", encoding='utf-8'))
 		return
 		
+		
 	def do_HEAD(self):
 		self.send_response(501)
 		self.send_header('Content-type','text/html')
 		self.end_headers()
 		self.wfile.write(bytes("Only POST is supported\n", encoding='utf-8'))
 		return
+		
 		
 	def do_PUT(self):
 		self.send_response(501)
@@ -40,12 +42,14 @@ class myHandler(BaseHTTPRequestHandler):
 		self.wfile.write(bytes("Only POST is supported\n", encoding='utf-8'))
 		return
 		
+		
 	def do_DELETE(self):
 		self.send_response(501)
 		self.send_header('Content-type','text/html')
 		self.end_headers()
 		self.wfile.write(bytes("Only POST is supported\n", encoding='utf-8'))
 		return
+		
 		
 	def do_POST(self):
 		self.send_response(200)
@@ -72,7 +76,7 @@ class myHandler(BaseHTTPRequestHandler):
 
 		ret = check_otp_auth(u, p, o)
 		if ret == False:
-			send_fail()
+			self.send_fail()
 			return
 		else:
 			token = (''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(16)))

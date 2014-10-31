@@ -1,5 +1,5 @@
 Security of Services Oriented Architecture course project
-===============
+=========================================================
 
 Features:
 ---------
@@ -10,8 +10,5 @@ Features:
 * Custom client for a better user experience
 
 
-Issues:
--------
-* Every registred user must be manually added to the PrivacyIdea db
-* PrivacyIdea doesn't support MongoDB
-* Eve works only with MongoDB
+Known Issues:
+-------------
