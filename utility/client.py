@@ -7,9 +7,13 @@ import base64
 
 requests.packages.urllib3.disable_warnings()
 
-VERSION = "1.0-alpha1"
+VERSION = "1.0-alpha2"
 METHODS = ['GET','POST','PATCH','DELETE']
 
+'''
+ToDo:
+    - generare HMAC del body e storarlo nell'header con nome Content-HMAC: $hmac_calcolato
+'''
 
 def is_json(data):
     try:
@@ -19,58 +23,57 @@ def is_json(data):
     return True
 
 
-def run_interactive(mode):
-    if(mode == 0):
-        h = input("Host (with port and endpoint): ")
-        m = input("Method: ")
-        if h[-8:] != 'accounts':
-            a = input("Auth token: ")
-            a = base64.b64encode((a + ":").encode())
-            a = a.decode()
-            a = 'Basic ' + a
-          
-        m = m.upper()
-        if(m not in METHODS):
-            sys.exit("[!] Unknown method. You have to choose one between: " + str(METHODS))
-            
-        if m != 'GET' and m != 'DELETE':
-            c = input("JSON data: ")
-            if not is_json(c):
-                sys.exit("[!] Given data is not in JSON format")
+def run_interactive_api(mode):
+    h = input("Host (with port and endpoint): ")
+    m = input("Method: ")
+    if h[-8:] != 'accounts':
+        a = input("Auth token: ")
+        a = base64.b64encode((a + ":").encode())
+        a = a.decode()
+        a = 'Basic ' + a
+      
+    m = m.upper()
+    if(m not in METHODS):
+        sys.exit("[!] Unknown method. You have to choose one between: " + str(METHODS))
         
-        if h[-8:] != 'accounts':
-            if m == 'PATCH' or m == 'DELETE':
-                etag = input("Type _etag field: ")
-                header = {'content-type':'application/json', 'If-Match': etag, 'Authorization': a}
-            else:
-                header = {'content-type':'application/json','Authorization': a}
-        else:
-            header = {'content-type':'application/json'}
-        
-        try:
-            if m == 'GET':
-                r = requests.get(h, headers=header)
-            elif m == 'POST':
-                r = requests.post(h, data=c, headers=header)
-            elif m == 'PATCH':
-                r = requests.patch(h, data=c, headers=header)
-            elif m == 'DELETE':
-                r = requests.delete(h, headers=header)
-        except requests.ConnectionError:
-            sys.exit("[!] Connection error. The host " + h + " is either wrong or offline")
-        else:
-            if m == 'DELETE' and r.status_code == 200:
-                print("200 DELETE OK")
-            else:
-                print(r.text)
-		
-		
-    else:
-        h = input("Host: ")
+    if m != 'GET' and m != 'DELETE':
         c = input("JSON data: ")
-
         if not is_json(c):
-            sys.exit("You wrote wrong JSON data")        
+            sys.exit("[!] Given data is not in JSON format")
+    
+    if h[-8:] != 'accounts':
+        if m == 'PATCH' or m == 'DELETE':
+            etag = input("Type _etag field: ")
+            header = {'content-type':'application/json', 'If-Match': etag, 'Authorization': a}
+        else:
+            header = {'content-type':'application/json','Authorization': a}
+    else:
+        header = {'content-type':'application/json'}
+    
+    try:
+        if m == 'GET':
+            r = requests.get(h, headers=header)
+        elif m == 'POST':
+            r = requests.post(h, data=c, headers=header)
+        elif m == 'PATCH':
+            r = requests.patch(h, data=c, headers=header)
+        elif m == 'DELETE':
+            r = requests.delete(h, headers=header)
+    except requests.ConnectionError:
+        sys.exit("[!] Connection error. The host " + h + " is either wrong or offline")
+    else:
+        if m == 'DELETE' and r.status_code == 200:
+            print("200 DELETE OK")
+        else:
+            print(r.text)
+		
+		
+def run_interactive_ws():
+    h = input("Host: ")
+    c = input("JSON data: ")
+
+    if not is_json(c):
+        sys.exit("You wrote wrong JSON data")        
     
 
 if __name__ == '__main__':
@@ -85,7 +88,10 @@ if __name__ == '__main__':
         if(len(sys.argv) < 3):
             sys.exit("You must choose between '--api' or '--ws'")
         if(sys.argv[2] == '--api'):
-            run_interactive(0)
+            run_interactive_api()
         elif(sys.argv[2] == '--ws'):
-            run_interactive(1)
-            
+            run_interactive_ws()
+    elif(sys.argv[1] == '--api'):
+        #parse args api
+    elif(sys.argv[1] == '--ws'):
+        #parse args ws

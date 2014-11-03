@@ -16,4 +16,4 @@ curl -X POST -H "Content-Type: application/json" -d '{"username":"asdasd", "pass
 per inserire vms:
 curl -X POST -H "Authorization: Basic XX" -H "Content-Type: application/json" -d '{"name":"myvm","os":"ubuntu","resources":{"vCPU":"4","RAM":"512","Disk":"1000"},"actions":["start"]}' -i http://localhost:5000/vms
 
-U.R.R.A.: ogni utente può gestire solo e soltanto le sue vms
+utente deve enrollare il proprio TOTP utilizzando https://localhsot:5001/selfservice e quindi loggarsi con le sue credenziali

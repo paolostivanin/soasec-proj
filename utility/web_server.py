@@ -9,14 +9,16 @@ from datetime import datetime, timezone, timedelta
 from pymongo import MongoClient
 import pymysql
 
-requests.packages.urllib3.disable_warnings()
 
+VERSION = "1.0-beta1"
 PORT_NUMBER = 8080
 
 '''
 ToDo:
 	- gestione errori (tipo ValueError se dimentico virgolette)
 '''
+
+requests.packages.urllib3.disable_warnings()
 
 class myHandler(BaseHTTPRequestHandler):	
 	def do_GET(self):
@@ -58,10 +60,14 @@ class myHandler(BaseHTTPRequestHandler):
 		content_len = int(self.headers.get('content-length', 0))
 		post_body = self.rfile.read(content_len)
 		loaded = json.loads(post_body.decode())
-		if 'option' in loaded:
+		if 'store' in loaded:
 			if 'username' and 'password' in loaded:
-				add_user_to_privacyidea_db(loaded['username'], loaded['password'])
-				return
+                if not check_user_before_insert(loaded['username']):
+                    self.send_fail()
+                    return
+                else:
+                    add_user_to_privacyidea_db(loaded['username'], loaded['password'])
+                    return
 			else:
 				self.send_fail()
 				return
@@ -81,13 +87,12 @@ class myHandler(BaseHTTPRequestHandler):
 		else:
 			token = (''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(16)))
 			token_validity = datetime.now(timezone.utc) + timedelta(days=1)
-			r = add_token_to_db(u, token, token_validity)
-			if not r:
-				is_stored = "no"
+			if not update_token(u, token, token_validity):
+                resp = {'auth':'yes','token_stored': 'error'}
 			else:
-				is_stored = "yes"
-			resp = {'auth':'yes','token': token,'valid_until': token_validity,'stored': is_stored}
-			json_resp = json.dumps(resp)
+                resp = {'auth':'yes','token': token,'valid_until': token_validity,'token_stored': 'yes'}
+			
+            json_resp = json.dumps(resp)
 			self.wfile.write(bytes(json_resp, encoding='utf-8'))
 			
 		return
@@ -99,7 +104,7 @@ class myHandler(BaseHTTPRequestHandler):
 		self.wfile.write(bytes(json_resp, encoding='utf-8'))
 	
 	
-def check_otp_auth(self, user, passwd, otp):
+def check_otp_auth(user, passwd, otp):
 	r = requests.get("https://localhost:5001/validate/check?user=" + user + "&pass=" + passwd + otp, verify=False)
 	parse = r.json()
 	res = parse['result']['value']
@@ -109,7 +114,7 @@ def check_otp_auth(self, user, passwd, otp):
 		return True
 
 
-def add_token_to_db(username, tk, tk_val):
+def update_token(username, tk, tk_val):
 	c = MongoClient()
 	db = c.apitest
 	myco = db["accounts"]
@@ -123,6 +128,16 @@ def add_token_to_db(username, tk, tk_val):
 		return True
 
 
+def check_user_before_insert(u):
+    c = pymysql.connect(host='127.0.0.1', port=3306, user='root', passwd='paolo', db='wpdb')
+    cur = c.cursor()
+    res = cur.execute("SELECT username FROM newtable WHERE username=%s", (u))
+    if res == 0:
+        return True
+    else:
+        return False
+    
+    
 def add_user_to_privacyidea_db(u, p):
 	pb = p.encode('utf-8')
 	salt = os.urandom(8)

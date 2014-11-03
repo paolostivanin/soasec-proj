@@ -79,7 +79,7 @@ accounts = {
     'public_item_methods': [],
     'resource_methods': ['GET', 'POST'],
     'item_methods': ['GET','PATCH','DELETE'],
-    'extra_response_fields': ['token'],
+    'extra_response_fields': ['token', 'secret_key'],
     'schema': accounts_schema,
 }
 
