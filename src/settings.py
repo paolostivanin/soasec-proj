@@ -5,7 +5,7 @@ MONGO_USERNAME = 'user'
 MONGO_PASSWORD = 'pass'
 MONGO_DBNAME = 'apitest'
 
-#DEBUG = True
+DEBUG = True
 
 #/<domain>
 #get: retrive all items from the specified <domain>

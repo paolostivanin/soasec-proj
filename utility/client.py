@@ -2,18 +2,15 @@
 
 import requests
 import sys
-import json
-import base64
+import json, base64
+import hmac
+from hashlib import sha1
 
 requests.packages.urllib3.disable_warnings()
 
-VERSION = "1.0-alpha2"
+VERSION = "1.0-alpha3"
 METHODS = ['GET','POST','PATCH','DELETE']
 
-'''
-ToDo:
-    - generare HMAC del body e storarlo nell'header con nome Content-HMAC: $hmac_calcolato
-'''
 
 def is_json(data):
     try:
@@ -23,10 +20,20 @@ def is_json(data):
     return True
 
 
-def run_interactive_api(mode):
+def compute_hmac(data):
+    k = input("Secret Key: ")
+    key = bytes(k, encoding='utf-8')
+    msg = bytes(data, encoding='utf-8')
+    hm = hmac.new(key, msg, sha1).digest()
+    b64hm = base64.b64encode(hm).decode()    
+    return b64hm
+    
+    
+def run_interactive_api():
     h = input("Host (with port and endpoint): ")
     m = input("Method: ")
-    if h[-8:] != 'accounts':
+    
+    if m != 'POST':
         a = input("Auth token: ")
         a = base64.b64encode((a + ":").encode())
         a = a.decode()
@@ -40,18 +47,23 @@ def run_interactive_api(mode):
         c = input("JSON data: ")
         if not is_json(c):
             sys.exit("[!] Given data is not in JSON format")
+    else:
+        c = '{}'
+        
+    hmac_header = compute_hmac(c)
     
     if h[-8:] != 'accounts':
         if m == 'PATCH' or m == 'DELETE':
             etag = input("Type _etag field: ")
-            header = {'content-type':'application/json', 'If-Match': etag, 'Authorization': a}
+            header = {'content-type':'application/json', 'If-Match': etag, 'Authorization': a, 'Content-HMAC': hmac_header}
         else:
-            header = {'content-type':'application/json','Authorization': a}
+            header = {'content-type':'application/json','Authorization': a, 'Content-HMAC': hmac_header}
     else:
-        header = {'content-type':'application/json'}
+        header = {'Authorization': a, 'content-type':'application/json', 'Content-HMAC': hmac_header}
     
     try:
         if m == 'GET':
+            print(hmac_header)
             r = requests.get(h, headers=header)
         elif m == 'POST':
             r = requests.post(h, data=c, headers=header)
@@ -92,6 +104,6 @@ if __name__ == '__main__':
         elif(sys.argv[2] == '--ws'):
             run_interactive_ws()
     elif(sys.argv[1] == '--api'):
-        #parse args api
+        print("api")
     elif(sys.argv[1] == '--ws'):
-        #parse args ws
+        print("ws")

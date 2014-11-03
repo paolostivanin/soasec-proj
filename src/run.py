@@ -2,9 +2,10 @@ from eve import Eve
 from eve.auth import TokenAuth
 from hashlib import sha1
 from datetime import datetime, timezone
-from flask import request
+from flask import request, abort
 import json, base64, string
 import random, bcrypt, hmac
+from pymongo import MongoClient 
 
 
 class RolesAuth(TokenAuth):
@@ -53,19 +54,20 @@ def post_vms_get_callback(request, payload):
     tmp_tk = request.headers.get('Authorization')
     b64_tk = tmp_tk.split(' ')[1]
     real_tk = base64.b64decode(b64_tk).decode()
+    real_tk = real_tk.split(":")[0]
     secret_key = get_seckey_from_token(real_tk)
     key = bytes(secret_key, encoding='utf-8')
     msg = request.data
+    if len(msg) == 0:
+        msg = '{}'.encode()
     hm = hmac.new(key, msg, sha1).digest()
     computed_hmac = base64.b64encode(hm).decode()
     if orig_hmac != computed_hmac:
-        return False
-    else:
-        return True
+        abort(401)
 
 				
 if __name__ == '__main__':
     app = Eve(auth=RolesAuth)
     app.on_insert_accounts += gen_token_hash_pwd
-    app.on_post_GET_vms += post_vms_get_callback
+    app.on_post_GET_accounts += post_vms_get_callback
     app.run()
