@@ -11,6 +11,11 @@ requests.packages.urllib3.disable_warnings()
 VERSION = "1.0-alpha3"
 METHODS = ['GET','POST','PATCH','DELETE']
 
+'''
+ToDo:
+    - non interactive (tutto da argv)
+'''
+
 
 def is_json(data):
     try:
@@ -63,7 +68,6 @@ def run_interactive_api():
     
     try:
         if m == 'GET':
-            print(hmac_header)
             r = requests.get(h, headers=header)
         elif m == 'POST':
             r = requests.post(h, data=c, headers=header)

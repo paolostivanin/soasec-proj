@@ -8,6 +8,10 @@ import random, bcrypt, hmac
 from pymongo import MongoClient 
 
 
+'''
+    - VALUTARE SE CONVERTIRE WEB SERVER IN CALLBACK
+'''
+
 class RolesAuth(TokenAuth):
     def check_auth(self, token, allowed_roles, resource, method):
         accounts = app.data.driver.db['accounts']
@@ -49,7 +53,7 @@ def get_seckey_from_token(token):
     return sec_key
     
     
-def post_vms_get_callback(request, payload):
+def methods_callback(resource, request, payload):
     orig_hmac = request.headers.get('Content-HMAC')
     tmp_tk = request.headers.get('Authorization')
     b64_tk = tmp_tk.split(' ')[1]
@@ -69,5 +73,8 @@ def post_vms_get_callback(request, payload):
 if __name__ == '__main__':
     app = Eve(auth=RolesAuth)
     app.on_insert_accounts += gen_token_hash_pwd
-    app.on_post_GET_accounts += post_vms_get_callback
+    app.on_pre_POST_vms += methods_callback
+    app.on_pre_GET += methods_callback
+    app.on_pre_PATCH += methods_callback
+    app.on_pre_DELETE += methods_callback
     app.run()

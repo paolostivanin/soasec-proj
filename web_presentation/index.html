@@ -1,0 +1,270 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=1024" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>SOA Security project</title>
+
+    <meta name="description" content="Presentation of the SOA Security course project" />
+    <meta name="author" content="Paolo Stivanin" />
+
+    <link href="http://fonts.googleapis.com/css?family=Open+Sans:regular,semibold,italic,italicsemibold|PT+Sans:400,700,400italic,700italic|PT+Serif:400,700,400italic,700italic" rel="stylesheet" />
+
+    <link href="css/impress.css" rel="stylesheet" />
+
+    <link rel="shortcut icon" href="favicon.png" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+</head>
+
+<body class="impress-not-supported">
+
+<div class="fallback-message">
+    <p>Your browser <b>doesn't support the features required</b> by impress.js, so you are presented with a simplified version of this presentation.</p>
+    <p>For the best experience please use the latest <b>Chrome</b>, <b>Safari</b> or <b>Firefox</b> browser.</p>
+</div>
+
+<div id="impress">
+
+    <div id="cover" class="step slide" data-x="-1000" data-y="-1500">
+        <q>@polslinux $ SOA Security</q>
+        <p>Presentation...</p>
+    </div>
+
+    <div class="step slide" data-x="0" data-y="-1500">
+        <q>git init</q>
+        <p>For the first 10 years of kernel maintenance, we literally used <b>tarballs and patches</b>, which is a much superior source control management system than CVS is.</p>
+        <p><em>There is no way to do CVS right.</em></p>
+        <p style="float: right">Linus Torvalds<p>
+    </div>
+
+    <div id="stupid" class="step" data-x="0" data-y="0" data-rotate="90" data-scale="2">
+        <q>"Should I hacked together a stupid content tracker during my weekend so I can stop using this CVS/SVN shit?!?"</q><br />
+        <span class="footnote">or so thought Linus, and over a few months ...</span>
+    </div>
+
+    <div id="design" class="step" data-x="3000" data-y="0" data-rotate="0" data-scale="6">
+        <p>git was created, its design criteria:</p>
+        <ul>
+          <li>high performance</li>
+          <li>non-linear development</li>
+          <li>strong integrity</li>
+        </ul>
+    </div>
+
+    <div id="perf" class="step slide" data-x="5500" data-y="0" data-rotate-x="10" data-rotate-y="-30" data-scale="1">
+        <h1>cache-concious design</h1>
+        <img class="center" src="git-local-remotes.png"><img>
+    </div>
+
+    <div id="distributed" class="step slide" data-x="6000" data-y="0" data-z="-2000" data-rotate-x="10" data-rotate-y="-30" data-scale="1">
+        <h1>all repository are created equal !!!</h1>
+        <img class="center" src="alleq.png" />
+    </div>
+
+    <div id="svn" class="step slide" data-x="6500" data-y="0" data-z="-4000" data-rotate-x="10" data-rotate-y="-30" data-scale="1">
+        <h1>unless one is promoted to be the <b>origin</b> of all things (just like svn)</h1>
+        <img class="center" src="workflow-a.png" />
+    </div>
+
+    <div id="github" class="step slide" data-x="7000" data-y="0" data-z="-6000" data-rotate-x="10" data-rotate-y="-30" data-scale="1">
+        <h1>github: you may fork, but you must request to be pulled</h1>
+        <img class="center" src="workflow-b.png" />
+    </div>
+
+    <div id="dictator" class="step slide" data-x="7500" data-y="0" data-z="-8000" data-rotate-x="10" data-rotate-y="-30" data-scale="1">
+        <h1>dictator: be careful of who you trust when merging!</h1>
+        <img class="center" src="workflow-c.png" />
+    </div>
+
+    <div id="integrity" class="step slide" data-x="8000" data-y="0" data-z="-10000" data-rotate-x="10" data-rotate-y="-30" data-scale="1">
+        <q>authentication of history</q>
+        <ul>
+            <li>each commit hash identify the snapshot content and the full associated history (more details comming)</li>
+            <li>each tag is an immutable pointer to a commit hashes</li>
+            <li>tags can be cryptographically signed with GPG</li>
+        </ul>
+    </div>
+
+    <div id="engineering" class="step" data-x="3000" data-y="2400" data-rotate="0" data-scale="6">
+        <q>git engineering</q>
+        <ul>
+          <li>content-addressable object database</li>
+          <li>Five (5) object types: blob, tree, commit, tag & branches</li>
+        </ul>
+    </div>
+
+    <div id="objects" class="step slide vertical" data-x="6400" data-y="2800" data-scale="3">
+    	<img class="center" src="git-objects.png" />
+    </div>
+
+    <div id="commits" class="step slide" data-x="8000" data-y="1600" data-rotate="15" data-scale="1">
+    	<h1>commits are snapshots, not deltas</h1>
+    	<img class="center" src="git-blobs.png" />
+    </div>
+
+    <div id="singleparent" class="step slide" data-x="8000" data-y="2400" data-rotate="15" data-scale="1">
+    	<h1>each commit points to its parent (knows its own history)</h1>
+    	<img class="center" src="git-commits.png" />
+    </div>
+
+    <div id="merges" class="step slide" data-x="8000" data-y="3200" data-rotate="15" data-scale="1">
+    	<q>merge is a commit with <em>N</em> parents, retaining merge history</q>
+        <img class="center" src="merge-history.png" />
+    </div>
+
+    <div id="branches" class="step slide" data-x="8000" data-y="4000" data-rotate="15" data-scale="1">
+          <h1>tags & branches are simply pointers to commits</h1>
+    	<img class="center" src="git-branches.png" />
+    </div>
+
+    <div id="getstarted" class="step slide" data-x="-2400" data-y="-500" data-rotate="45" data-scale="2">
+        <h1>getting started</h1>
+        <pre># git let you choose your display name
+$ git config --global user.name "Your Name"
+$ git config --global user.email you@yourdomain
+
+# to start new repo
+$ git init
+
+# to clone an existing one
+$ git clone https://github.com/git/git.git
+
+# for access control
+# you'll need to have a RSA/DSA key pair
+</pre>
+    </div>
+
+    <div id="basicops" class="step slide" data-x="-2400" data-y="1500" data-rotate="0" data-scale="4">
+        <h1>basic operations</h1>
+        <img class="center" src="git-local-remotes.png"><img>
+    </div>
+
+    <div id="basicflow" class="step slide" data-x="-4800" data-y="1500" data-rotate="0" data-scale="2">
+        <q>basic day to day work flow</q>
+        <ul>
+            <li>git checkout working-branch</li>
+            <li>git fetch && git merge origin master</li>
+            <li>vim work.py</li>
+            <li>git diff</li>
+            <li>git add work.py<li
+            <li>git commit -m 'meaningful messages'</li>
+            <li>git push origin working-branch</li>
+        </ul>
+    </div>
+
+    <div id="staging" class="step slide" data-x="-4800" data-y="3000" data-rotate="-20" data-scale="2">
+        <h1>partial commit with staging area (GUI recommended, e.g. GitX)</h1>
+        <p>one afternoon, you made changes to 15 files; now you want to commit it in 3 parts!</p>
+        <pre>
+$ touch foo.py bar.py bazzz.py
+$ git add foo.py bar.py
+
+# alternatively, staging patch by patch, interactively
+$ git add -p
+
+# this reset the staging area, but leaving the working tree dirty
+$ git reset
+</pre>
+    </div>
+
+    <div id="cleanup" class="step slide" data-x="-4800" data-y="4500" data-rotate="-20" data-scale="2">
+        <h1>cleaning up the mess</h1>
+        <pre># just unstage the file, don't overwrite working copy
+$ git reset HEAD -- file.py
+
+# checkout file from HEAD, overwriting working copy
+$ git checkout -- oldstuff.py
+
+# checkout subdir from old version, overwriting working copy
+git checkout v3.25.1 -- path/to/dir
+
+# i committed and pushed something is just broken :(,
+# this makes an extra commit that is
+# the negatation the changes in badcommit.
+$ git revert badcommit
+</pre>
+    </div>
+
+    <div id="hist" class="step slide" data-x="-4800" data-y="6000" data-rotate="-20" data-scale="2">
+        <h1>viewing history</h1>
+        <pre># idonethis!
+$ git log --author=Hai-Anh --since="12 hours ago"
+
+# list all commits since branch 3.24
+$ git log v3.24..master >> release-notes.txt
+
+# did anyone touch the config file?
+$ git log v3.24..master -- src/config/settings.py
+
+# show file diff against old version
+$ git diff v2.5.1:foobar.py HEAD:foobar.py
+
+# grepping through history
+$ git grep XXX v3.25
+</pre>
+    </div>
+
+    <div id="80branches" class="step slide" data-x="-3000" data-y="5000" data-rotate="-90" data-scale="1">
+        <h1>too many branches???</h1>
+        <img class="center" src="wide-gitk.gif" />
+    </div>
+
+    <div id="rebase" class="step slide" data-x="-2200" data-y="5000" data-rotate="-90" data-scale="1">
+        <h1>use rebase for a linear history</h1>
+        <img class="center" src="rebase.png" />
+        <p class="caption">rebase rewrites history, use it for <b>local</b> changes only!</p>
+    </div>
+
+    <div id="jobdone" class="step slide" data-x="-1400" data-y="5000" data-rotate="-90" data-scale="1">
+        <h1>git is flexible, and get the job done</h1>
+        <pre># forgot to commit a new file, but local changes not pushed yet
+$ git add forgotten.py
+$ git commit --amend
+
+# i want that fix in my branch, now!
+$ git cherry-pick ${sha1}
+
+# i was working on feature X, made changes to 10 files
+# now i must leave it aside to work on a hotfix
+$ git stash save 'partial work on feature X'
+$ git checkout -b v2.30.1-hotfix v.2.30.1  # work on hotfix
+
+$ git checkout working-branch
+$ git stash pop
+</pre>
+    </div>
+
+    <div id="next" class="step slide" data-x="1000" data-y="5000" data-rotate="0" data-scale="4">
+        <h1>where next?</h1>
+        <ul>
+          <li>Choose a GUI: <a href="http://git-scm.com/downloads/guis">Official GUI clients list</a>, my fav is <a href="http://gitx.laullon.com/">GitX</a> on OS X, if you use Eclipse then use <a href="http://www.eclipse.org/egit/">EGit</a>.</li>
+          <li>Read the <a href="http://git-scm.com/docs/gittutorial">official tutorial</a> ($ man gittutorial).</li>
+          <li>Follow the <a href="http://gitimmersion.com/">git immersion</a>, a guided tour of git.</li>
+          <li>Read <a href="http://www-cs-students.stanford.edu/~blynn/gitmagic/">git magic</a>, a more involved/advanced tour of git.</li>
+          <li>Read the <a href="http://git-scm.com/book">Pro Git book</a>, it's quite short & sweet.</li>
+          <li><a href="http://git-scm.com/docs">RTFM</a></li>
+          <li>Hangout on #git on <a href="irc://irc.freenode.net/git">irc.freenode.net</a>.</li>
+        </ul>
+        <p class="caption" style="margin-top: 50px">brought to you by<a href="http://twitter.com/chickamade">@chickamade</a>, engineer at <a href="https://klamr.to/">klamr.to</a>.</p>
+    </div>
+
+    <div id="overview" class="step" data-x="1400" data-y="1600" data-scale="12">
+    </div>
+</div>
+
+<div class="hint">
+    <p>Use a spacebar or arrow keys to navigate</p>
+</div>
+<script>
+if ("ontouchstart" in document.documentElement) {
+    document.querySelector(".hint").innerHTML = "<p>Tap on the left or right to navigate</p>";
+}
+</script>
+
+<script src="js/impress.js"></script>
+<script>impress().init();</script>
+
+</body>
+</html>
