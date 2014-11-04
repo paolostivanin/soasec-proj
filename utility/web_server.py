@@ -60,25 +60,13 @@ class myHandler(BaseHTTPRequestHandler):
 		content_len = int(self.headers.get('content-length', 0))
 		post_body = self.rfile.read(content_len)
 		loaded = json.loads(post_body.decode())
-		if 'store' in loaded:
-			if 'username' and 'password' in loaded:
-                if not check_user_before_insert(loaded['username']):
-                    self.send_fail()
-                    return
-                else:
-                    add_user_to_privacyidea_db(loaded['username'], loaded['password'])
-                    return
-			else:
-				self.send_fail()
-				return
+        if 'username' and 'password' and 'otp' in loaded:
+			u = loaded['username']
+			p = loaded['password']
+			o = loaded['otp']
 		else:
-			if 'username' and 'password' and 'otp' in loaded:
-				u = loaded['username']
-				p = loaded['password']
-				o = loaded['otp']
-			else:
-				self.send_fail()
-				return
+			self.send_fail()
+			return
 
 		ret = check_otp_auth(u, p, o)
 		if ret == False:
@@ -126,28 +114,6 @@ def update_token(username, tk, tk_val):
 	else:
 		c.close()
 		return True
-
-
-def check_user_before_insert(u):
-    c = pymysql.connect(host='127.0.0.1', port=3306, user='root', passwd='paolo', db='wpdb')
-    cur = c.cursor()
-    res = cur.execute("SELECT username FROM newtable WHERE username=%s", (u))
-    if res == 0:
-        return True
-    else:
-        return False
-    
-    
-def add_user_to_privacyidea_db(u, p):
-	pb = p.encode('utf-8')
-	salt = os.urandom(8)
-	enc=  base64.b64encode(hashlib.sha1(pb + salt).digest() + salt)
-	hashed_pwd = '{SSHA}' + enc.decode()
-	c = pymysql.connect(host='127.0.0.1', port=3306, user='root', passwd='paolo', db='wpdb')
-	cur = c.cursor()
-	cur.execute("INSERT INTO newtable(username, password) VALUES(%s, %s)", (u, hashed_pwd))
-	c.commit()
-	c.close()
 
 
 try:

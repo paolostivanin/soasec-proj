@@ -37,17 +37,16 @@ def compute_hmac(data):
 def run_interactive_api():
     h = input("Host (with port and endpoint): ")
     m = input("Method: ")
+    m = m.upper()
+    if(m not in METHODS):
+        sys.exit("[!] Unknown method. You have to choose one between: " + str(METHODS))
     
-    if m != 'POST':
+    if m != 'POST' or (m == 'POST' and h[-8:] != 'accounts'):
         a = input("Auth token: ")
         a = base64.b64encode((a + ":").encode())
         a = a.decode()
         a = 'Basic ' + a
       
-    m = m.upper()
-    if(m not in METHODS):
-        sys.exit("[!] Unknown method. You have to choose one between: " + str(METHODS))
-        
     if m != 'GET' and m != 'DELETE':
         c = input("JSON data: ")
         if not is_json(c):
@@ -94,7 +93,7 @@ def run_interactive_ws():
 
 if __name__ == '__main__':
     if(len(sys.argv) < 2):
-        sys.exit('Usage: python ' + sys.argv[0] + ' [-h]|[-v]|[-i]')
+        sys.exit('Usage: python ' + sys.argv[0] + ' [-h]|[-v]|[-i]|[--api]|[--ws]')
         
     if(sys.argv[1] == '-h' or sys.argv[1] == '--help'):
         print("Now a help will be printed")
@@ -108,6 +107,7 @@ if __name__ == '__main__':
         elif(sys.argv[2] == '--ws'):
             run_interactive_ws()
     elif(sys.argv[1] == '--api'):
-        print("api")
+        #<0:name> <1:--api> <2:
+        print("ciao")
     elif(sys.argv[1] == '--ws'):
         print("ws")

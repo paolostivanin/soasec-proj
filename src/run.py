@@ -3,14 +3,12 @@ from eve.auth import TokenAuth
 from hashlib import sha1
 from datetime import datetime, timezone
 from flask import request, abort
-import json, base64, string
-import random, bcrypt, hmac
 from pymongo import MongoClient 
+import json, base64, string
+import os, random, bcrypt, hmac
+import pymysql
 
 
-'''
-    - VALUTARE SE CONVERTIRE WEB SERVER IN CALLBACK
-'''
 
 class RolesAuth(TokenAuth):
     def check_auth(self, token, allowed_roles, resource, method):
@@ -27,11 +25,43 @@ class RolesAuth(TokenAuth):
 
 def gen_token_hash_pwd(documents):
 	for document in documents:
-		document["token"] = (''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(16)))
-		document["tokendate"] = datetime.now(timezone.utc)
-		document["password"] = bcrypt.hashpw(document["password"], bcrypt.gensalt(10))
-		document["secret_key"] = (''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(32)))
-		
+        if not is_user_inside_privacyidea_db(document["username"]):
+            add_user_to_privacyidea_db(document["username"], document["password"])
+            document["token"] = (''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(16)))
+            document["tokendate"] = datetime.now(timezone.utc)
+            document["password"] = bcrypt.hashpw(document["password"], bcrypt.gensalt(10))
+            document["secret_key"] = (''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(32)))
+
+
+def is_user_inside_privacyidea_db(u):
+    c = pymysql.connect(host='127.0.0.1', port=3306, user='root', passwd='paolo', db='wpdb')
+    cur = c.cursor()
+    res = cur.execute("SELECT username FROM newtable WHERE username=%s", (u))
+    if res == 0:
+        return False
+    else:
+        return True
+
+
+def add_user_to_privacyidea_db(u, p):
+	pb = p.encode('utf-8')
+	salt = os.urandom(8)
+	enc=  base64.b64encode(hashlib.sha1(pb + salt).digest() + salt)
+	hashed_pwd = '{SSHA}' + enc.decode()
+	c = pymysql.connect(host='127.0.0.1', port=3306, user='root', passwd='paolo', db='wpdb')
+	cur = c.cursor()
+	cur.execute("INSERT INTO newtable(username, password) VALUES(%s, %s)", (u, hashed_pwd))
+	c.commit()
+	c.close()
+    		
+
+def delete_from_privacyidea_db(document):
+	c = pymysql.connect(host='127.0.0.1', port=3306, user='root', passwd='paolo', db='wpdb')
+	cur = c.cursor()
+	cur.execute("DELETE FROM newtable WHERE username=%s", (document["username"]))
+	c.commit()
+	c.close()    
+
 
 def check_token_validity(d1):
     d2 = datetime.now(timezone.utc)
@@ -73,6 +103,7 @@ def methods_callback(resource, request, payload):
 if __name__ == '__main__':
     app = Eve(auth=RolesAuth)
     app.on_insert_accounts += gen_token_hash_pwd
+    app.on_delete_item_accounts += delete_from_privacyidea_db
     app.on_pre_POST_vms += methods_callback
     app.on_pre_GET += methods_callback
     app.on_pre_PATCH += methods_callback
