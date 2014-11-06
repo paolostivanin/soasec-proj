@@ -53,8 +53,11 @@ def run_interactive_api():
             sys.exit("[!] Given data is not in JSON format")
     else:
         c = '{}'
-        
-    hmac_header = compute_hmac(c)
+    
+    if h[-8:] == 'accounts' and m == 'POST':
+        pass
+    else:
+        hmac_header = compute_hmac(c)
     
     if h[-8:] != 'accounts':
         if m == 'PATCH' or m == 'DELETE':
@@ -62,8 +65,10 @@ def run_interactive_api():
             header = {'content-type':'application/json', 'If-Match': etag, 'Authorization': a, 'Content-HMAC': hmac_header}
         else:
             header = {'content-type':'application/json','Authorization': a, 'Content-HMAC': hmac_header}
-    else:
+    elif h[-8:] == 'accounts' and m != 'POST':
         header = {'Authorization': a, 'content-type':'application/json', 'Content-HMAC': hmac_header}
+    else:
+        header = {'content-type':'application/json'}
     
     try:
         if m == 'GET':

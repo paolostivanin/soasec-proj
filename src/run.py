@@ -1,13 +1,14 @@
 from eve import Eve
 from eve.auth import TokenAuth
 from hashlib import sha1
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from flask import request, abort
-from pymongo import MongoClient 
+from pymongo import MongoClient
+from bson.objectid import ObjectId
 import json, base64, string
 import os, random, bcrypt, hmac
 import pymysql
-
+import requests
 
 
 class RolesAuth(TokenAuth):
@@ -24,14 +25,19 @@ class RolesAuth(TokenAuth):
         
 
 def gen_token_hash_pwd(documents):
-	for document in documents:
+    for document in documents:
+        document["token"] = (''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(16)))
+        document["tokendate"] = datetime.now(timezone.utc)
+        document["password"] = bcrypt.hashpw(document["password"], bcrypt.gensalt(10))
+        document["secret_key"] = (''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(32)))
+'''
         if not is_user_inside_privacyidea_db(document["username"]):
             add_user_to_privacyidea_db(document["username"], document["password"])
             document["token"] = (''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(16)))
             document["tokendate"] = datetime.now(timezone.utc)
             document["password"] = bcrypt.hashpw(document["password"], bcrypt.gensalt(10))
             document["secret_key"] = (''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(32)))
-
+'''
 
 def is_user_inside_privacyidea_db(u):
     c = pymysql.connect(host='127.0.0.1', port=3306, user='root', passwd='paolo', db='wpdb')
@@ -55,6 +61,17 @@ def add_user_to_privacyidea_db(u, p):
 	c.close()
     		
 
+def add_userid_to_db(document):
+    c = MongoClient()
+    db = c.apitest
+    myco = db["accounts"]
+    for i in document:
+        user_name = myco.find_one({"username": i['username']})["username"]
+        to_add = i['_id']
+        myco.update({'username': user_name},{'$set': {'user_id': ObjectId(to_add)}})
+    c.close()
+
+    
 def delete_from_privacyidea_db(document):
 	c = pymysql.connect(host='127.0.0.1', port=3306, user='root', passwd='paolo', db='wpdb')
 	cur = c.cursor()
@@ -97,15 +114,85 @@ def methods_callback(resource, request, payload):
     hm = hmac.new(key, msg, sha1).digest()
     computed_hmac = base64.b64encode(hm).decode()
     if orig_hmac != computed_hmac:
-        abort(401)
+        abort(401, description="Wrong HMAC")
+        
+        
+def vms_post_callback(request):
+    orig_hmac = request.headers.get('Content-HMAC')
+    tmp_tk = request.headers.get('Authorization')
+    b64_tk = tmp_tk.split(' ')[1]
+    real_tk = base64.b64decode(b64_tk).decode()
+    real_tk = real_tk.split(":")[0]
+    secret_key = get_seckey_from_token(real_tk)
+    key = bytes(secret_key, encoding='utf-8')
+    msg = request.data
+    if len(msg) == 0:
+        msg = '{}'.encode()
+    hm = hmac.new(key, msg, sha1).digest()
+    computed_hmac = base64.b64encode(hm).decode()
+    if orig_hmac != computed_hmac:
+        abort(401, description="Wrong HMAC")
 
-				
+
+def pre_accounts_patch_callback(request, lookup):
+    data = request.json
+    if 'username' and 'password' and 'otp' in data:
+        u = data['username']
+        p = data['password']
+        o = data['otp']
+        if not check_otp_auth(u, p, o):
+            abort(401, description="Wrong OTP value")
+        else:
+            token = (''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(16)))
+            token_validity = datetime.now(timezone.utc) + timedelta(days=1)
+            if not update_token(u, token, token_validity):
+                abort(500, description="Failed to update token")
+            else:
+                print("qua devo uscire 200 senza che venga processato il resto")
+    else:
+        abort(401, description="Missing username, password or otp")
+
+
+def check_otp_auth(user, passwd, otp):
+	r = requests.get("https://localhost:5001/validate/check?user=" + user + "&pass=" + passwd + otp, verify=False)
+	parse = r.json()
+	res = parse['result']['value']
+	if res == False:
+		return False
+	else:
+		return True
+
+
+def update_token(username, tk, tk_val):
+	c = MongoClient()
+	db = c.apitest
+	myco = db["accounts"]
+	r = myco.update({'username': username},{'$set': {'token': tk, 'tokendate': tk_val}})
+	ret = r['updatedExisting']
+	if not ret:
+		c.close()
+		return False
+	else:
+		c.close()
+		return True
+
+
+def remove_from_patch(updates, original):
+    if 'otp' and 'username' and 'password' in updates:
+        del updates['otp']
+        del updates['username']
+        del updates['password']
+    
+   
 if __name__ == '__main__':
     app = Eve(auth=RolesAuth)
     app.on_insert_accounts += gen_token_hash_pwd
+    app.on_inserted_accounts += add_userid_to_db
+    app.on_update_accounts += remove_from_patch
     app.on_delete_item_accounts += delete_from_privacyidea_db
-    app.on_pre_POST_vms += methods_callback
+    app.on_pre_POST_vms += vms_post_callback
     app.on_pre_GET += methods_callback
     app.on_pre_PATCH += methods_callback
+    app.on_pre_PATCH_accounts += pre_accounts_patch_callback
     app.on_pre_DELETE += methods_callback
     app.run()

@@ -39,6 +39,10 @@ accounts_schema = {
         'allowed': ['user','admin'],
         'default': ['user'],
         'required': False,
+    },
+    'otp':{
+        'type': 'integer',
+        'required': False,
     }
 }
 

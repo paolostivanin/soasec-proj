@@ -10,7 +10,7 @@ from pymongo import MongoClient
 import pymysql
 
 
-VERSION = "1.0-beta1"
+VERSION = "1.0-alpha3"
 PORT_NUMBER = 8080
 
 '''
