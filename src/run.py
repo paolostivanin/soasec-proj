@@ -9,6 +9,7 @@ import json, base64, string
 import os, random, bcrypt, hmac
 import pymysql
 import requests
+import hashlib
 
 
 class RolesAuth(TokenAuth):
@@ -24,10 +25,23 @@ class RolesAuth(TokenAuth):
         return account
         
 
+def check_token_validity(d1):
+    d2 = datetime.now(timezone.utc)
+    s = (d2-d1).seconds + (d2-d1).days * 86400
+    m = round(s/60)
+    #If token is older than a day (1440 minutes) => ERR(401)
+    if m >= 1440:
+        return False
+    else:
+        return True
+
+
 def gen_token_hash_pwd(documents):
     for document in documents:
-        if not is_user_inside_privacyidea_db(document["username"]):
-            add_user_to_privacyidea_db(document["username"], document["password"])
+        username = document["username"]
+        passwd = document["password"]
+        if not is_user_inside_privacyidea_db(username):
+            add_user_to_privacyidea_db(username, passwd)
             document["token"] = (''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(16)))
             document["tokendate"] = datetime.now(timezone.utc)
             document["password"] = bcrypt.hashpw(document["password"], bcrypt.gensalt(10))
@@ -73,17 +87,6 @@ def delete_from_privacyidea_db(document):
 	cur.execute("DELETE FROM newtable WHERE username=%s", (document["username"]))
 	c.commit()
 	c.close()    
-
-
-def check_token_validity(d1):
-    d2 = datetime.now(timezone.utc)
-    s = (d2-d1).seconds + (d2-d1).days * 86400
-    m = round(s/60)
-    #If token is older than a day (1440 minutes) => ERR(401)
-    if m >= 1440:
-        return False
-    else:
-        return True
 
 
 def get_seckey_from_token(token):
@@ -143,19 +146,21 @@ def pre_accounts_patch_callback(request, lookup):
             if not update_token(u, token, token_validity):
                 abort(500, description="Failed to update token")
             else:
-                print("qua devo uscire 200 senza che venga processato il resto")
+                pass
     else:
         abort(401, description="Missing username, password or otp")
 
 
 def check_otp_auth(user, passwd, otp):
-	r = requests.get("https://localhost:5001/validate/check?user=" + user + "&pass=" + passwd + otp, verify=False)
-	parse = r.json()
-	res = parse['result']['value']
-	if res == False:
-		return False
-	else:
-		return True
+    req_link = "https://localhost:5001/validate/check?user=" + user + "&pass=" + passwd + otp
+    print(req_link)
+    r = requests.post(req_link, verify=False)
+    parse = r.json()
+    res = parse['result']['value']
+    if res == False:
+        return False
+    else:
+        return True
 
 
 def update_token(username, tk, tk_val):

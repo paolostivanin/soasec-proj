@@ -8,13 +8,9 @@ from hashlib import sha1
 
 requests.packages.urllib3.disable_warnings()
 
-VERSION = "1.0-alpha3"
+DEVELOPER = "Paolo Stivanin <http://paolostivanin.com>"
+VERSION = "1.0-beta1"
 METHODS = ['GET','POST','PATCH','DELETE']
-
-'''
-ToDo:
-    - non interactive (tutto da argv)
-'''
 
 
 def is_json(data):
@@ -25,9 +21,8 @@ def is_json(data):
     return True
 
 
-def compute_hmac(data):
-    k = input("Secret Key: ")
-    key = bytes(k, encoding='utf-8')
+def compute_hmac(data, sk):
+    key = bytes(sk, encoding='utf-8')
     msg = bytes(data, encoding='utf-8')
     hm = hmac.new(key, msg, sha1).digest()
     b64hm = base64.b64encode(hm).decode()    
@@ -57,7 +52,8 @@ def run_interactive():
     if h[-8:] == 'accounts' and m == 'POST':
         pass
     else:
-        hmac_header = compute_hmac(c)
+        k = input("Secret key: ")
+        hmac_header = compute_hmac(c, k)
     
     if h[-8:] != 'accounts':
         if m == 'PATCH' or m == 'DELETE':
@@ -90,7 +86,8 @@ def run_interactive():
 
 def run_from_argv():
     h = sys.argv[1]
-    m = upper(sys.argv[2])
+    m = sys.argv[2]
+    m = m.upper()
     if(m not in METHODS):
         sys.exit("[!] Unknown method. You have to choose one between: " + str(METHODS))
     
@@ -100,14 +97,17 @@ def run_from_argv():
         a = a.decode()
         a = 'Basic ' + a
         
-    c = sys.argv[4]
-    if not is_json(c):
-        sys.exit("[!] Given data is not in JSON format")
+    
+    if sys.argv[4] != 'none':
+        c = sys.argv[4]
+        if not is_json(c):
+            sys.exit("[!] Given data is not in JSON format")
+    else:
+        c = '{}'
         
     if sys.argv[5] != 'none':
-        hmac_header = compute_hmac(c)
+        hmac_header = compute_hmac(c, sys.argv[5])
     
-    # DA CAMBIARE, DEVE ESSERE SGRONDATO DA CLI E NON INTERATTIVAMENTE
     if sys.argv[6] != 'none':
         etag = sys.argv[6]
         if m == 'PATCH' or m == 'DELETE':
@@ -144,7 +144,7 @@ if __name__ == '__main__':
     if(sys.argv[1] == '-h' or sys.argv[1] == '--help'):
         print("Usage:\npython " + sys.argv[0] + " <host> <method> <token> <JSON data> <secret key> <etag>\nWrite 'none' if you don't want to use a specific field")
     elif(sys.argv[1] == '-v' or sys.argv[1] == '--version'):
-        print("PyClient v" + VERSION)
+        print(sys.argv[0] + " v" + VERSION + " developed by " + DEVELOPER)
     elif(sys.argv[1] == '-i' or sys.argv[1] == '--interactive'):
         run_interactive()
     else:
