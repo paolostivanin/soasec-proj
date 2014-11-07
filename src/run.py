@@ -19,25 +19,20 @@ class RolesAuth(TokenAuth):
             self.set_request_auth_value(account['_id'])
 
         if not check_token_validity(account['tokendate']):
-            return
+            abort(401, description="Token expired, please update it")
 
         return account
         
 
 def gen_token_hash_pwd(documents):
     for document in documents:
-        document["token"] = (''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(16)))
-        document["tokendate"] = datetime.now(timezone.utc)
-        document["password"] = bcrypt.hashpw(document["password"], bcrypt.gensalt(10))
-        document["secret_key"] = (''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(32)))
-'''
         if not is_user_inside_privacyidea_db(document["username"]):
             add_user_to_privacyidea_db(document["username"], document["password"])
             document["token"] = (''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(16)))
             document["tokendate"] = datetime.now(timezone.utc)
             document["password"] = bcrypt.hashpw(document["password"], bcrypt.gensalt(10))
             document["secret_key"] = (''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(32)))
-'''
+
 
 def is_user_inside_privacyidea_db(u):
     c = pymysql.connect(host='127.0.0.1', port=3306, user='root', passwd='paolo', db='wpdb')
