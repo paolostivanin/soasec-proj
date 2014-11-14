@@ -4,16 +4,18 @@ use apitest
 db.createUser({user: 'user', pwd: 'pass', roles: [{role: "readWrite", db: "apitest"}]})
 db.createCollection("accounts")
 
-//se uso auth base con user,pwd (la pwd è paolo):
-db.accounts.insert({username: "pol", password: "$2a$10$kiYIJnKZsCG5GKyxgaZEdeVgPW2J/n1sWWJx.iI9uzcJd0u.NPeEa"})
 
-con la token-based auth bisogna inviare encodato il token come se fosse lo username senza password. Dato il token è "ciao", la stringa da inviare è:
-Authorization: Basic base64("ciao:")
+#inserire utente:
+python client.py accounts post none '{"username":"","password":""}' none none
 
-per inserire un account con post:
-curl -X POST -H "Content-Type: application/json" -d '{"username":"asdasd", "password":"gronf"}' -i http://localhost:5000/accounts
+#inserire vm:
+python client.py vms post $token '{"name":"myvm","os":"ubuntu","resources":{"vCPU":"4","RAM":"512","Disk":"1000"},"actions":["start"]}' $sec_key none
 
-per inserire vms:
-curl -X POST -H "Authorization: Basic XX" -H "Content-Type: application/json" -d '{"name":"myvm","os":"ubuntu","resources":{"vCPU":"4","RAM":"512","Disk":"1000"},"actions":["start"]}' -i http://localhost:5000/vms
+#aggiornare token:
+python client.py accounts/object_id patch $token '{"username":"","password":"","otp":""}' $sec_key $etag
 
-utente deve enrollare il proprio TOTP utilizzando https://localhsot:5001/selfservice e quindi loggarsi con le sue credenziali
+#delete user:
+python client.py accounts/object_id delete $token none $sec_key $etag
+
+
+#utente deve enrollare il proprio TOTP utilizzando https://localhsot:5001/selfservice e quindi loggarsi con le sue credenziali

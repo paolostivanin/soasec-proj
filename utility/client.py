@@ -9,7 +9,7 @@ from hashlib import sha1
 requests.packages.urllib3.disable_warnings()
 
 DEVELOPER = "Paolo Stivanin <http://paolostivanin.com>"
-VERSION = "1.0-beta1"
+VERSION = "1.0-beta2"
 METHODS = ['GET','POST','PATCH','DELETE']
 
 
@@ -30,7 +30,8 @@ def compute_hmac(data, sk):
     
     
 def run_interactive():
-    h = input("Host (with port and endpoint): ")
+    h = input("Endpoint: ")
+    h = "http://localhost:5000/" + h
     m = input("Method: ")
     m = m.upper()
     if(m not in METHODS):
@@ -85,7 +86,7 @@ def run_interactive():
 		
 
 def run_from_argv():
-    h = sys.argv[1]
+    h = "http://localhost:5000/" + sys.argv[1]
     m = sys.argv[2]
     m = m.upper()
     if(m not in METHODS):

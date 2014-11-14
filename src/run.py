@@ -16,6 +16,9 @@ class RolesAuth(TokenAuth):
     def check_auth(self, token, allowed_roles, resource, method):
         accounts = app.data.driver.db['accounts']
         account = accounts.find_one({'token': token})
+        if account == None:
+            abort(401, description="Wrong token")
+
         if account and '_id' in account:
             self.set_request_auth_value(account['_id'])
 
@@ -98,7 +101,7 @@ def get_seckey_from_token(token):
     return sec_key
     
     
-def methods_callback(resource, request, payload):
+def hmac_callback(resource, request, payload):
     orig_hmac = request.headers.get('Content-HMAC')
     tmp_tk = request.headers.get('Authorization')
     b64_tk = tmp_tk.split(' ')[1]
@@ -115,7 +118,7 @@ def methods_callback(resource, request, payload):
         abort(401, description="Wrong HMAC")
         
         
-def vms_post_callback(request):
+def vms_post_hmac_callback(request):
     orig_hmac = request.headers.get('Content-HMAC')
     tmp_tk = request.headers.get('Authorization')
     b64_tk = tmp_tk.split(' ')[1]
@@ -190,9 +193,9 @@ if __name__ == '__main__':
     app.on_inserted_accounts += add_userid_to_db
     app.on_update_accounts += remove_from_patch
     app.on_delete_item_accounts += delete_from_privacyidea_db
-    app.on_pre_POST_vms += vms_post_callback
-    app.on_pre_GET += methods_callback
-    app.on_pre_PATCH += methods_callback
+    app.on_pre_POST_vms += vms_post_hmac_callback
+    app.on_pre_GET += hmac_callback
+    app.on_pre_PATCH += hmac_callback
     app.on_pre_PATCH_accounts += pre_accounts_patch_callback
-    app.on_pre_DELETE += methods_callback
+    app.on_pre_DELETE += hmac_callback
     app.run()
