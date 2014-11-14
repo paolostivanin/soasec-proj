@@ -10,5 +10,9 @@ Features:
 * Custom client for a better user experience
 
 
-Known Issues:
+Requirements:
 -------------
+* Python 3
+* Eve >= 0.5-dev
+* PrivacyIDEA >= 1.5-dev7
+* MongoDB >= 2.6
